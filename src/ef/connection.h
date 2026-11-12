@@ -60,7 +60,9 @@ class Connection {
 
  private:
   void startScan();
+  void dropLink();  // stop scan, free the client, flush rx + parsers
   void enterBackoff(uint32_t now_ms, const char *reason);
+  void enterAuthenticated(uint32_t now_ms);
   bool connectAndSubscribe();
   void startHandshake(uint32_t now_ms);
   void processIncoming(uint32_t now_ms);

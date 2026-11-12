@@ -7,6 +7,9 @@ and 12V outputs. No phone, no internet, no cloud.
 **Hardware:** ESP32-2432S028R "Cheap Yellow Display" (CYD) — ESP32-WROOM-32 +
 2.8" 240x320 ILI9341 TFT + XPT2046 resistive touch, one board, no wiring.
 
+**New to electronics?** Open [docs/setup-guide.html](docs/setup-guide.html) in a
+browser — an illustrated, step-by-step version of everything below.
+
 **Protocol:** ported from [rabits/ha-ef-ble](https://github.com/rabits/ha-ef-ble)
 (see [PROTOCOL.md](PROTOCOL.md) for the full write-up).
 
@@ -30,7 +33,7 @@ CYD or River 2 yet. First-boot checklist below.
 3. Create your secrets file:
 
    ```sh
-   cp src/secrets.h.example src/secrets.h
+   cp -n src/secrets.h.example src/secrets.h
    # edit ECOFLOW_USER_ID (and optionally ECOFLOW_DEVICE_SN)
    ```
 
@@ -40,6 +43,9 @@ CYD or River 2 yet. First-boot checklist below.
    ```sh
    pio run -e cyd -t upload && pio device monitor
    ```
+
+   Board has **two** USB ports (USB-C + micro-USB)? It has a different display
+   panel — use `-e cyd2usb` instead. Wrong choice = inverted colours.
 
 ## Host-side protocol tests (no hardware needed)
 

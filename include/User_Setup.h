@@ -3,12 +3,24 @@
 //   https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display
 // Loaded via platformio.ini: -DUSER_SETUP_LOADED=1 -include include/User_Setup.h
 
+// Two hardware variants are sold under the same name:
+//   - ONE USB port (micro-USB)            -> ILI9341 panel  (env:cyd)
+//   - TWO USB ports (USB-C + micro-USB)   -> ST7789 panel   (env:cyd2usb)
+// Wrong variant = inverted / wrong colours. Pick the matching PlatformIO env.
+#ifdef CYD_2USB
+#define ST7789_DRIVER
+#define TFT_RGB_ORDER TFT_BGR
+#define TFT_INVERSION_OFF
+#else
 #define ILI9341_2_DRIVER  // alternative init sequence used by the CYD panel
+#endif
 
 #define TFT_WIDTH 240
 #define TFT_HEIGHT 320
 
-// Display SPI (HSPI)
+// Display SPI. USE_HSPI_PORT matters: without it TFT_eSPI drives the display
+// from VSPI, the same peripheral src/ui/ui.cpp uses for the touch controller.
+#define USE_HSPI_PORT
 #define TFT_MISO 12
 #define TFT_MOSI 13
 #define TFT_SCLK 14

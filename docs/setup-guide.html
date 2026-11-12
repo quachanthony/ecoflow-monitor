@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoFlow Monitor Setup Guide</title>
+<style>
+/* Layout: one 46rem column on a workbench-grey ground. Each step is a numbered
+   block: instruction, diagram panel, "you'll know it worked", then fixes. */
+:root {
+  --bg: #eef1f0;
+  --surface: #ffffff;
+  --ink: #16212a;
+  --muted: #56646e;
+  --line: #d3dade;
+  --pcb: #f0c02c;        /* the yellow of the board itself */
+  --pcb-deep: #c2940f;
+  --pcb-ink: #2a2205;
+  --go: #12775a;
+  --go-bg: #e0f2ea;
+  --stop: #b53a26;
+  --stop-bg: #fbe8e3;
+  --wire: #2a62c9;
+  --code-bg: #121b22;
+  --code-fg: #e9eff3;
+  --code-muted: #9aaab5;
+  --font-display: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1417; --surface: #171f25; --ink: #e7edf0; --muted: #9daab3; --line: #2b363d;
+    --go: #4cc79b; --go-bg: #12312a; --stop: #f3836d; --stop-bg: #3a1c17; --wire: #7aaaff;
+    --code-bg: #0a0f13; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1417; --surface: #171f25; --ink: #e7edf0; --muted: #9daab3; --line: #2b363d;
+  --go: #4cc79b; --go-bg: #12312a; --stop: #f3836d; --stop-bg: #3a1c17; --wire: #7aaaff;
+  --code-bg: #0a0f13; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 4.5rem; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.6 var(--font-body);
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 46rem;
+  margin-inline: auto;
+  padding-block: 1.5rem 5rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 2.9rem); letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.4rem, 4.2vw, 1.8rem); }
+h3 { font-size: 1.1rem; }
+p { margin: 0; }
+a { color: var(--wire); }
+strong { font-weight: 650; }
+code, kbd { font-family: var(--font-mono); font-size: 0.9em; }
+:not(pre) > code { background: color-mix(in srgb, var(--ink) 9%, transparent); padding: 0.1em 0.35em; border-radius: 5px; }
+kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0.05em 0.4em; background: var(--surface); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--wire); outline-offset: 2px; }
+.stack { display: flex; flex-direction: column; gap: 1rem; }
+.muted { color: var(--muted); }
+.small { font-size: 0.9rem; }
+
+/* ---- sticky progress ---- */
+.bar {
+  position: sticky; top: 0; z-index: 5;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.bar-in {
+  max-width: 46rem; margin-inline: auto;
+  padding-block: 0.6rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+.bar-title { font-family: var(--font-display); font-weight: 700; }
+.pips { display: flex; gap: 4px; margin-left: auto; }
+.pips a {
+  width: 1.55rem; height: 1.55rem; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--muted); text-decoration: none; font-size: 0.75rem; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pips a.done { background: var(--go); border-color: var(--go); color: var(--surface); }
+
+/* ---- hero ---- */
+.hero { padding-block: 1.5rem 0.5rem; }
+.eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.lead { font-size: 1.2rem; max-width: 36rem; }
+.things { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.9rem; }
+.thing {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.thing svg { width: 100%; height: auto; display: block; }
+.thing p { font-size: 0.95rem; }
+.chip {
+  align-self: flex-start; font-size: 0.8rem; font-weight: 700; border-radius: 99px;
+  padding: 0.15rem 0.65rem;
+}
+.chip.yes { background: var(--go-bg); color: var(--go); }
+.chip.no { background: var(--stop-bg); color: var(--stop); }
+.bigfact {
+  background: var(--pcb); color: var(--pcb-ink); border-radius: 14px;
+  padding: 1rem 1.15rem; font-family: var(--font-display); font-size: 1.2rem; font-weight: 650;
+}
+.bigfact span { display: block; font-family: var(--font-body); font-size: 1rem; font-weight: 400; margin-top: 0.25rem; }
+
+/* ---- steps ---- */
+.step { padding-top: 2.75rem; display: flex; flex-direction: column; gap: 1rem; }
+.step-head { display: flex; align-items: center; gap: 0.8rem; }
+.num {
+  flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%;
+  background: var(--pcb); color: var(--pcb-ink);
+  box-shadow: inset 0 0 0 3px var(--pcb-deep);
+  display: grid; place-items: center;
+  font: 800 1.25rem var(--font-display);
+}
+.panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;
+}
+.panel svg { width: 100%; height: auto; display: block; }
+.caption { font-size: 0.92rem; color: var(--muted); }
+.cmd {
+  display: flex; align-items: stretch; gap: 0;
+  background: var(--code-bg); color: var(--code-fg); border-radius: 10px; overflow: hidden;
+}
+.cmd code {
+  flex: 1; min-width: 0; overflow-x: auto; white-space: pre;
+  padding: 0.75rem 0.9rem; font-size: 0.92rem; background: none;
+}
+.cmd .env { color: var(--pcb); font-weight: 700; }
+.cmd button {
+  flex: none; border: 0; border-left: 1px solid #ffffff22; background: none; color: var(--code-muted);
+  font: 600 0.8rem var(--font-body); padding: 0 0.9rem; cursor: pointer; min-width: 4.4rem;
+}
+.cmd button:hover { color: var(--code-fg); background: #ffffff14; }
+.cmdnote { font-size: 0.92rem; color: var(--muted); margin-top: -0.6rem; }
+.worked {
+  background: var(--go-bg); border-radius: 10px; padding: 0.8rem 1rem;
+}
+.worked b { color: var(--go); display: block; font-family: var(--font-display); }
+details.fix { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+details.fix summary { cursor: pointer; padding: 0.7rem 1rem; font-weight: 650; }
+details.fix > div { padding: 0 1rem 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; }
+details.fix dt { font-weight: 650; }
+details.fix dd { margin: 0.1rem 0 0; color: var(--muted); }
+details.fix dl { margin: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+.dodont { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.dodont li { display: flex; gap: 0.6rem; align-items: baseline; }
+.dodont li::before {
+  flex: none; width: 1.35rem; height: 1.35rem; border-radius: 50%; display: inline-grid; place-items: center;
+  font-size: 0.8rem; font-weight: 800; transform: translateY(0.1rem);
+}
+.dodont .do::before { content: "✓"; background: var(--go-bg); color: var(--go); }
+.dodont .dont::before { content: "✕"; background: var(--stop-bg); color: var(--stop); }
+.donebox { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 650; cursor: pointer; align-self: flex-start; }
+.donebox input { width: 1.25rem; height: 1.25rem; accent-color: var(--go); }
+
+/* variant picker */
+.pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; }
+.pick button {
+  background: var(--surface); color: var(--ink); border: 2px solid var(--line); border-radius: 14px;
+  padding: 0.8rem; cursor: pointer; font: 650 1rem var(--font-display); text-align: center;
+  display: flex; flex-direction: column; gap: 0.4rem; align-items: center;
+}
+.pick button svg { width: 100%; max-width: 15rem; height: auto; }
+.pick button small { font: 400 0.85rem var(--font-body); color: var(--muted); }
+.pick button[aria-pressed="true"] { border-color: var(--go); background: var(--go-bg); }
+.pick button[aria-pressed="true"]::after { content: "✓ Selected"; color: var(--go); font-size: 0.85rem; }
+
+/* simulator */
+.sim { max-width: 26rem; margin-inline: auto; width: 100%; }
+.sim text { font-family: var(--font-body); }
+.sim .mono { font-family: var(--font-mono); font-weight: 700; }
+.sim .tap { cursor: pointer; }
+.simchips { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+.simchips button, .bbbtns button {
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 99px; padding: 0.3rem 0.8rem; font: 600 0.88rem var(--font-body); cursor: pointer;
+}
+.simchips button[aria-pressed="true"], .bbbtns button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.simsay { text-align: center; min-height: 4.2em; font-size: 0.97rem; }
+.bbbtns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.bbwrap { overflow-x: auto; }
+.bbwrap svg { min-width: 30rem; touch-action: pan-x pan-y; }
+
+.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.6rem 1.5rem; margin: 0; }
+.gloss dt { font-weight: 650; font-family: var(--font-display); }
+.gloss dd { margin: 0; color: var(--muted); font-size: 0.95rem; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
+
+/* ---- animation (off for reduced motion; resting state is the finished state) ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .a-plug { animation: plug 5s ease-in-out infinite; }
+  .a-boot { animation: boot 5s linear infinite; }
+  .a-pkt { animation: pkt 1.8s linear infinite; }
+  .a-pkt.p2 { animation-delay: -0.6s; }
+  .a-pkt.p3 { animation-delay: -1.2s; }
+  .a-fill { animation: fill 5s linear infinite; }
+  .a-blink { animation: blink 1.2s steps(2) infinite; }
+}
+.a-fill { transform-box: fill-box; transform-origin: left center; }
+@keyframes plug { 0%, 18% { transform: translateX(-38px); } 42%, 100% { transform: translateX(0); } }
+@keyframes boot { 0%, 46% { opacity: 0; } 54%, 100% { opacity: 1; } }
+@keyframes pkt { 0% { transform: translateX(-90px); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(88px); opacity: 0; } }
+@keyframes fill { 0% { transform: scaleX(0.02); } 90%, 100% { transform: scaleX(1); } }
+@keyframes blink { 50% { opacity: 0.25; } }
+</style>
+</head>
+<body>
+
+<!-- shared drawings -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="sym-laptop" viewBox="0 0 220 140">
+      <rect x="30" y="6" width="160" height="104" rx="8" fill="#2b343b"/>
+      <rect x="38" y="14" width="144" height="88" rx="3" fill="#0f1418"/>
+      <path d="M6 114 H214 L205 128 Q203 132 197 132 H23 Q17 132 15 128 Z" fill="#c4ccd1"/>
+      <rect x="92" y="117" width="36" height="4" rx="2" fill="#a9b2b8"/>
+    </symbol>
+    <symbol id="sym-board" viewBox="0 0 200 140">
+      <rect x="1" y="1" width="198" height="138" rx="10" fill="#f0c02c" stroke="#c2940f" stroke-width="2"/>
+      <circle cx="9" cy="9" r="3.5" fill="#8f6f0c"/><circle cx="191" cy="9" r="3.5" fill="#8f6f0c"/>
+      <circle cx="9" cy="131" r="3.5" fill="#8f6f0c"/><circle cx="191" cy="131" r="3.5" fill="#8f6f0c"/>
+      <rect x="14" y="12" width="172" height="116" rx="3" fill="#0b0f12"/>
+    </symbol>
+    <pattern id="holes" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="1.3" fill="#3a4146"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="bar">
+  <div class="bar-in">
+    <span class="bar-title">Setup guide</span>
+    <span id="count" class="muted">0 of 8 steps done</span>
+    <nav class="pips" aria-label="Steps">
+      <a href="#s1">1</a><a href="#s2">2</a><a href="#s3">3</a><a href="#s4">4</a>
+      <a href="#s5">5</a><a href="#s6">6</a><a href="#s7">7</a><a href="#s8">8</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+
+<header class="hero stack">
+  <p class="eyebrow">EcoFlow River 2 Bluetooth monitor</p>
+  <h1>There is nothing to wire.</h1>
+  <p class="lead">You have three things on the table. Only one of them is needed, and it is already fully built. Here is what each one is.</p>
+
+  <div class="things">
+    <div class="thing">
+      <svg viewBox="0 0 200 120" role="img" aria-label="Yellow board with a touchscreen showing a battery percentage">
+        <use href="#sym-board" x="20" y="4" width="160" height="112"/>
+        <text x="38" y="50" font-family="ui-monospace,Menlo,monospace" font-weight="700" font-size="26" fill="#fff">87%</text>
+        <rect x="38" y="62" width="58" height="34" rx="5" fill="#00ac00"/>
+        <rect x="102" y="62" width="58" height="34" rx="5" fill="#393c39"/>
+        <text x="67" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">AC ON</text>
+        <text x="131" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">12V OFF</text>
+      </svg>
+      <span class="chip yes">This is the whole project</span>
+      <h3>The yellow screen board, in the cardboard box</h3>
+      <p>A tiny computer, a touchscreen and a Bluetooth radio, all on one board. Its nickname is the <strong>Cheap Yellow Display</strong>, or CYD. The label on your box calls it ESP-S028R.</p>
+    </div>
+    <div class="thing">
+      <svg viewBox="0 0 200 120" role="img" aria-label="Small black circuit board with a silver metal square and two rows of pins">
+        <rect x="34" y="32" width="132" height="56" rx="5" fill="#1d2023"/>
+        <g fill="#d4a72c">
+          <rect x="40" y="35" width="3" height="5"/><rect x="48" y="35" width="3" height="5"/><rect x="56" y="35" width="3" height="5"/><rect x="64" y="35" width="3" height="5"/><rect x="72" y="35" width="3" height="5"/><rect x="80" y="35" width="3" height="5"/><rect x="88" y="35" width="3" height="5"/><rect x="96" y="35" width="3" height="5"/><rect x="104" y="35" width="3" height="5"/><rect x="112" y="35" width="3" height="5"/><rect x="120" y="35" width="3" height="5"/><rect x="128" y="35" width="3" height="5"/><rect x="136" y="35" width="3" height="5"/><rect x="144" y="35" width="3" height="5"/>
+          <rect x="40" y="80" width="3" height="5"/><rect x="48" y="80" width="3" height="5"/><rect x="56" y="80" width="3" height="5"/><rect x="64" y="80" width="3" height="5"/><rect x="72" y="80" width="3" height="5"/><rect x="80" y="80" width="3" height="5"/><rect x="88" y="80" width="3" height="5"/><rect x="96" y="80" width="3" height="5"/><rect x="104" y="80" width="3" height="5"/><rect x="112" y="80" width="3" height="5"/><rect x="120" y="80" width="3" height="5"/><rect x="128" y="80" width="3" height="5"/><rect x="136" y="80" width="3" height="5"/><rect x="144" y="80" width="3" height="5"/>
+        </g>
+        <rect x="52" y="44" width="40" height="32" rx="2" fill="#c3c9cd"/>
+        <path d="M38 48 h8 v6 h-6 v6 h6 v6 h-6 v6 h8" fill="none" stroke="#d4a72c" stroke-width="2"/>
+        <rect x="150" y="51" width="18" height="18" rx="2" fill="#b8bfc4"/>
+        <rect x="112" y="52" width="16" height="16" fill="#2f3438"/>
+      </svg>
+      <span class="chip no">Not needed</span>
+      <h3>The little black thing</h3>
+      <p>A different mini computer called a <strong>NodeMCU ESP8266</strong> (the silver square on it says ESP8266MOD). It has Wi-Fi but no Bluetooth, and your battery only speaks Bluetooth. Keep it for another project.</p>
+    </div>
+    <div class="thing">
+      <svg viewBox="0 0 200 120" role="img" aria-label="White breadboard covered in rows of small holes">
+        <rect x="14" y="22" width="172" height="76" rx="4" fill="#ecefe6" stroke="#c9cec2"/>
+        <rect x="22" y="38" width="156" height="20" fill="url(#holes)"/>
+        <rect x="22" y="62" width="156" height="20" fill="url(#holes)"/>
+        <rect x="22" y="27" width="156" height="8" fill="url(#holes)"/>
+        <rect x="22" y="85" width="156" height="8" fill="url(#holes)"/>
+        <line x1="22" y1="26" x2="178" y2="26" stroke="#d2493a" stroke-width="1.2"/>
+        <line x1="22" y1="94" x2="178" y2="94" stroke="#3f6fd0" stroke-width="1.2"/>
+        <rect x="14" y="58.5" width="172" height="3" fill="#d5dacd"/>
+      </svg>
+      <span class="chip no">Not needed</span>
+      <h3>The white breadboard</h3>
+      <p>A board for joining loose parts together without soldering. This project has no loose parts, so nothing goes on it. <a href="#breadboard">How it works</a>, for next time.</p>
+    </div>
+  </div>
+
+  <div class="bigfact">Wires to connect: one USB cable.
+    <span>The whole job is to plug the yellow board into your Mac, copy the program onto it, and move it to the van. Eight short steps, about 30 minutes.</span>
+  </div>
+</header>
+
+<!-- ================= STEP 1 ================= -->
+<section class="step" id="s1">
+  <div class="step-head"><span class="num">1</span><h2>Open the box and count the USB sockets</h2></div>
+  <p>Inside you should find the yellow board and a USB cable. There may also be a small plastic pen for tapping the screen and a short wire with a white plug. Ignore that wire.</p>
+  <p>Look around the edges of the yellow board. <strong>How many USB sockets does it have?</strong> Tap your answer. The commands further down this page change to match.</p>
+
+  <div class="pick" role="group" aria-label="How many USB sockets does your board have?">
+    <button type="button" id="pick-cyd" data-variant="cyd" aria-pressed="false">
+      <svg viewBox="0 0 200 84" aria-hidden="true">
+        <rect x="10" y="6" width="180" height="56" rx="8" fill="#f0c02c" stroke="#c2940f" stroke-width="2"/>
+        <rect x="86" y="50" width="28" height="18" rx="3" fill="#b8bfc4" stroke="#7d868c"/>
+        <rect x="91" y="60" width="18" height="5" rx="1" fill="#30363b"/>
+      </svg>
+      One socket
+      <small>a small flat one (micro-USB)</small>
+    </button>
+    <button type="button" id="pick-cyd2usb" data-variant="cyd2usb" aria-pressed="false">
+      <svg viewBox="0 0 200 84" aria-hidden="true">
+        <rect x="10" y="6" width="180" height="56" rx="8" fill="#f0c02c" stroke="#c2940f" stroke-width="2"/>
+        <rect x="52" y="50" width="28" height="18" rx="3" fill="#b8bfc4" stroke="#7d868c"/>
+        <rect x="57" y="60" width="18" height="5" rx="1" fill="#30363b"/>
+        <rect x="116" y="50" width="32" height="18" rx="9" fill="#b8bfc4" stroke="#7d868c"/>
+        <rect x="122" y="59" width="20" height="5" rx="2.5" fill="#30363b"/>
+      </svg>
+      Two sockets
+      <small>a flat one and an oval one (USB-C)</small>
+    </button>
+  </div>
+  <p class="caption">The two versions look the same from the front but have different screens inside. A wrong answer only makes the colours look odd. It cannot damage anything, and you can change it later.</p>
+
+  <div class="panel">
+    <h3>Handling it</h3>
+    <ul class="dodont">
+      <li class="do">Hold it by the edges, like a photo.</li>
+      <li class="do">Rest it on cardboard, wood or a plain desk. The box it came in is perfect.</li>
+      <li class="dont"><span><strong>Never rest it on metal while it is plugged in.</strong> That includes the lid or wrist rest of a MacBook. The back of the board has bare metal points, and a metal surface joins them together.</span></li>
+      <li class="do">Peel off the clear film on the screen if there is one.</li>
+    </ul>
+  </div>
+  <label class="donebox"><input type="checkbox" id="done-1" data-step="1"> Step 1 done</label>
+</section>
+
+<!-- ================= STEP 2 ================= -->
+<section class="step" id="s2">
+  <div class="step-head"><span class="num">2</span><h2>Plug it into your Mac</h2></div>
+  <p>The USB cable does two jobs. It <strong>powers</strong> the board and it <strong>carries the program</strong> to it. There is no battery, no power supply and no on switch. Plugged in means on.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 640 200" role="img" aria-label="Animation: a USB cable from a laptop plugs into the yellow board and its screen lights up">
+      <g class="a-plug">
+        <line x1="150" y1="163" x2="376" y2="163" stroke="#3b4650" stroke-width="6" stroke-linecap="round"/>
+        <rect x="372" y="153" width="32" height="20" rx="4" fill="#3b4650"/>
+        <rect x="404" y="157" width="12" height="12" fill="#b8bfc4"/>
+      </g>
+      <use href="#sym-laptop" x="10" y="44" width="220" height="140"/>
+      <use href="#sym-board" x="420" y="30" width="200" height="140"/>
+      <rect x="410" y="152" width="14" height="22" rx="3" fill="#8d969c"/>
+      <g class="a-boot">
+        <rect x="440" y="48" width="52" height="96" fill="#e0483a"/>
+        <rect x="492" y="48" width="56" height="96" fill="#35b36b"/>
+        <rect x="548" y="48" width="52" height="96" fill="#3b78e0"/>
+        <rect x="462" y="80" width="116" height="34" rx="6" fill="#0b0f12"/>
+        <text x="520" y="104" text-anchor="middle" font-size="20" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">it's alive</text>
+      </g>
+    </svg>
+    <p class="caption">Use the cable from the box. On the board it goes into the <strong>small flat socket</strong> (micro-USB). It only fits one way up, so do not force it.</p>
+  </div>
+
+  <ul class="dodont">
+    <li class="do"><span>If your Mac only has small oval sockets (USB-C), put a USB-C adapter or hub on the Mac end, or use a cable that is USB-C on one end and micro-USB on the other.</span></li>
+    <li class="dont"><span><strong>Two-socket boards:</strong> do not use an oval-to-oval (USB-C to USB-C) cable in the board's oval socket. This board cannot be powered that way. Use the flat socket.</span></li>
+  </ul>
+
+  <div class="worked"><b>You'll know it worked when</b>the screen lights up. New boards show a colourful demo. Whatever it shows is fine.</div>
+
+  <details class="fix">
+    <summary>It didn't work</summary>
+    <div><dl>
+      <div><dt>The screen stays black</dt><dd>Push both ends of the cable in firmly. Try a different USB socket on the Mac. Then try a different cable.</dd></div>
+      <div><dt>The screen is on, but step 5 later says it cannot find the board</dt><dd>Many USB cables only carry power and no data. Use the cable from the box, or one you have used to copy files to a phone or camera.</dd></div>
+    </dl></div>
+  </details>
+  <label class="donebox"><input type="checkbox" id="done-2" data-step="2"> Step 2 done</label>
+</section>
+
+<!-- ================= STEP 3 ================= -->
+<section class="step" id="s3">
+  <div class="step-head"><span class="num">3</span><h2>Install the tool that talks to the board</h2></div>
+  <p>You only do this once. Commands are typed into the <strong>Terminal</strong> app: press <kbd>⌘ Space</kbd>, type <kbd>Terminal</kbd>, press <kbd>Return</kbd>. For each dark box below, press Copy, paste into Terminal with <kbd>⌘ V</kbd>, press <kbd>Return</kbd>, and wait for it to finish.</p>
+
+  <div class="cmd"><code>cd ~/Developer/ecoflow-monitor</code><button type="button">Copy</button></div>
+  <p class="cmdnote">Go to the project folder. Do this first every time you open a new Terminal window.</p>
+
+  <div class="cmd"><code>brew install platformio</code><button type="button">Copy</button></div>
+  <p class="cmdnote">Installs PlatformIO, the program that copies code onto boards. This takes a few minutes.</p>
+
+  <div class="cmd"><code>pio --version</code><button type="button">Copy</button></div>
+  <p class="cmdnote">Checks that it installed.</p>
+
+  <div class="worked"><b>You'll know it worked when</b>the last command prints something like <code>PlatformIO Core, version 6.1.18</code>.</div>
+
+  <div class="panel">
+    <h3>Would you like Claude to type for you?</h3>
+    <p>In Claude, say <em>“Run step 3 of docs/setup-guide.html.”</em> Claude can run every step on this page except step 4, where you type your own password.</p>
+  </div>
+
+  <details class="fix">
+    <summary>It didn't work</summary>
+    <div><dl>
+      <div><dt><code>command not found: pio</code></dt><dd>Close the Terminal window, open a new one, run the first command again, then try <code>pio --version</code> again.</dd></div>
+    </dl></div>
+  </details>
+  <label class="donebox"><input type="checkbox" id="done-3" data-step="3"> Step 3 done</label>
+</section>
+
+<!-- ================= STEP 4 ================= -->
+<section class="step" id="s4">
+  <div class="step-head"><span class="num">4</span><h2>Give it your EcoFlow user id</h2></div>
+  <p>Your battery only obeys the EcoFlow account it was set up with in the phone app. The board proves it belongs to you with your account's <strong>user id</strong>. That is a long number. It is not your email and it is not your password.</p>
+
+  <div class="cmd"><code>python3 tools/get_user_id.py you@example.com</code><button type="button">Copy</button></div>
+  <p class="cmdnote">Change <code>you@example.com</code> to the email you log in to the EcoFlow app with. It then asks for your EcoFlow password. <strong>Nothing shows while you type.</strong> That is normal. Type it and press <kbd>Return</kbd>.</p>
+  <p class="caption">Your password goes to EcoFlow's own login server, the same as when you sign in to the app. It is not saved anywhere.</p>
+
+  <div class="worked"><b>You'll know it worked when</b>it prints <code>Your user id: 1234567890123456789</code> with your own number. Select the number and copy it.</div>
+
+  <div class="cmd"><code>cp -n src/secrets.h.example src/secrets.h</code><button type="button">Copy</button></div>
+  <p class="cmdnote">Makes your private settings file. It stays on your Mac. If the file already exists, this leaves it untouched.</p>
+
+  <div class="cmd"><code>open -e src/secrets.h</code><button type="button">Copy</button></div>
+  <p class="cmdnote">Opens that file in TextEdit.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 640 150" role="img" aria-label="The line to edit: replace only the digits between the quotes">
+      <rect x="0" y="0" width="640" height="150" rx="10" fill="#121b22"/>
+      <text x="20" y="50" font-family="ui-monospace,Menlo,monospace" font-size="19" fill="#9aaab5">#define ECOFLOW_USER_ID</text>
+      <text x="20" y="84" font-family="ui-monospace,Menlo,monospace" font-size="24" fill="#e9eff3">"<tspan fill="#f0c02c" font-weight="700">1234567890123456789</tspan>"</text>
+      <path d="M34 96 H306" stroke="#f0c02c" stroke-width="3"/>
+      <text x="34" y="126" font-family="system-ui,sans-serif" font-size="18" fill="#e9eff3">Replace only these digits with your number. Keep both quote marks.</text>
+    </svg>
+    <p class="caption">Find the line that starts with <code>#define ECOFLOW_USER_ID</code>. Paste your number over the example one, then save with <kbd>⌘ S</kbd> and close TextEdit. Leave the other line alone.</p>
+  </div>
+
+  <details class="fix">
+    <summary>It didn't work</summary>
+    <div><dl>
+      <div><dt><code>Login failed</code></dt><dd>The email or password is not the one for your EcoFlow account. Check that you can log in to the EcoFlow app with the same two things.</dd></div>
+      <div><dt>You sign in to the app with Apple or Google and have no password</dt><dd>The script needs an email and password login. Set a password for the account in the EcoFlow app first.</dd></div>
+      <div><dt>The battery has never been set up in the app</dt><dd>Do that first. Pairing it in the app is what links the battery to your account.</dd></div>
+    </dl></div>
+  </details>
+  <label class="donebox"><input type="checkbox" id="done-4" data-step="4"> Step 4 done</label>
+</section>
+
+<!-- ================= STEP 5 ================= -->
+<section class="step" id="s5">
+  <div class="step-head"><span class="num">5</span><h2>Copy the program onto the board</h2></div>
+  <p>People call this <strong>flashing</strong> or <strong>uploading</strong>. With the board plugged in, run:</p>
+
+  <div class="cmd"><code>pio run -e <span class="env">cyd</span> -t upload</code><button type="button">Copy</button></div>
+  <p class="cmdnote" id="envnote">You have not answered step 1 yet. This is the command for a one-socket board.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 640 200" role="img" aria-label="Animation: the program travels down the USB cable from the laptop to the board">
+      <line x1="150" y1="163" x2="376" y2="163" stroke="#3b4650" stroke-width="6" stroke-linecap="round"/>
+      <rect x="372" y="153" width="32" height="20" rx="4" fill="#3b4650"/>
+      <rect x="404" y="157" width="12" height="12" fill="#b8bfc4"/>
+      <g transform="translate(316 0)">
+        <rect class="a-pkt" x="-5" y="145" width="10" height="10" rx="2" fill="#f0c02c" stroke="#c2940f"/>
+        <rect class="a-pkt p2" x="-5" y="145" width="10" height="10" rx="2" fill="#f0c02c" stroke="#c2940f"/>
+        <rect class="a-pkt p3" x="-5" y="145" width="10" height="10" rx="2" fill="#f0c02c" stroke="#c2940f"/>
+      </g>
+      <use href="#sym-laptop" x="10" y="44" width="220" height="140"/>
+      <g fill="#35b36b"><rect x="58" y="68" width="92" height="6" rx="3"/><rect x="58" y="82" width="120" height="6" rx="3" fill="#56646e"/><rect x="58" y="96" width="74" height="6" rx="3" fill="#56646e"/><rect class="a-blink" x="58" y="110" width="10" height="12" fill="#e9eff3"/></g>
+      <use href="#sym-board" x="420" y="30" width="200" height="140"/>
+      <rect x="410" y="152" width="14" height="22" rx="3" fill="#8d969c"/>
+      <text x="520" y="92" text-anchor="middle" font-size="20" font-weight="700" fill="#e9eff3" font-family="system-ui,sans-serif">receiving</text>
+      <rect x="456" y="106" width="128" height="12" rx="6" fill="#2b343b"/>
+      <rect class="a-fill" x="456" y="106" width="128" height="12" rx="6" fill="#f0c02c"/>
+    </svg>
+    <p class="caption">The first run takes a few minutes because it downloads what it needs. After that it takes under a minute. Leave the cable alone while it runs.</p>
+  </div>
+
+  <div class="worked"><b>You'll know it worked when</b>Terminal ends with a green <code>SUCCESS</code> line, and the board restarts to a black screen with <strong>Scanning</strong> in the top left corner.</div>
+
+  <details class="fix">
+    <summary>It didn't work</summary>
+    <div><dl>
+      <div><dt>Stuck on <code>Connecting........</code> and then fails</dt><dd>Find the two tiny buttons on the back of the board, labelled BOOT and RST. Press and hold <strong>BOOT</strong>, run the command again, and let go when Terminal says <code>Writing</code>.</dd></div>
+      <div><dt>It cannot find a port or a device</dt><dd>The Mac cannot see the board. Go back to step 2 and try another cable.</dd></div>
+      <div><dt><code>secrets.h: No such file</code></dt><dd>Step 4 was skipped. Do the two commands that create and open <code>secrets.h</code>.</dd></div>
+      <div><dt>The colours look wrong, like a photo negative</dt><dd>Change your answer in step 1 and run the new command. Running it again simply replaces the program.</dd></div>
+      <div><dt>The picture is upside down or mirrored</dt><dd>Tell Claude: <em>“The screen is upside down.”</em> It is a one-line change.</dd></div>
+    </dl></div>
+  </details>
+  <label class="donebox"><input type="checkbox" id="done-5" data-step="5"> Step 5 done</label>
+</section>
+
+<!-- ================= STEP 6 ================= -->
+<section class="step" id="s6">
+  <div class="step-head"><span class="num">6</span><h2>Let it find the battery</h2></div>
+  <p>Three things have to be true for the board to connect:</p>
+  <ul class="dodont">
+    <li class="do">The battery is switched on.</li>
+    <li class="do"><span><strong>The EcoFlow app on your phone is fully closed.</strong> Swipe it away. The battery talks to one Bluetooth device at a time, so while the app has the connection the board cannot get it.</span></li>
+    <li class="do">The board is within a few metres of the battery.</li>
+  </ul>
+  <p>Then watch the top left corner of the screen. This is a working copy of what you will see. Tap the labels underneath to see what each message means.</p>
+
+  <div class="panel">
+    <svg class="sim" viewBox="0 0 360 280" role="group" aria-label="Simulated monitor screen">
+      <rect x="1" y="1" width="358" height="278" rx="14" fill="#f0c02c" stroke="#c2940f" stroke-width="2"/>
+      <svg x="20" y="20" width="320" height="240" viewBox="0 0 320 240">
+        <rect width="320" height="240" fill="#000"/>
+        <rect width="320" height="24" fill="#181c18"/>
+        <circle id="sim-dot" cx="12" cy="12" r="5" fill="#00c800"/>
+        <text id="sim-status" x="24" y="17" font-size="13" fill="#fff">Connected</text>
+        <text x="312" y="17" text-anchor="end" font-size="12" fill="#7b7d7b">R621ZEB4XF123456</text>
+        <text x="10" y="82" class="mono" font-size="50" fill="#fff"><tspan id="sim-pct">87.3</tspan><tspan font-size="22" fill="#7b7d7b" dx="5">%</tspan></text>
+        <text id="sim-remain" x="12" y="108" font-size="13" fill="#7b7d7b">5h12m left</text>
+        <text x="200" y="46" font-size="12" fill="#7b7d7b">IN</text>
+        <text id="sim-in" x="200" y="71" font-size="24" fill="#fff">0W</text>
+        <text x="200" y="90" font-size="12" fill="#7b7d7b">OUT</text>
+        <text id="sim-out" x="200" y="116" font-size="24" fill="#fff">42W</text>
+        <g id="sim-ac" class="tap" role="button" tabindex="0" aria-label="AC output button">
+          <rect x="10" y="130" width="145" height="86" rx="10" fill="#00ac00" stroke="#7b7d7b"/>
+          <text x="82.5" y="181" text-anchor="middle" font-size="24" fill="#fff">AC ON</text>
+        </g>
+        <g id="sim-dc" class="tap" role="button" tabindex="0" aria-label="12 volt output button">
+          <rect x="165" y="130" width="145" height="86" rx="10" fill="#393c39" stroke="#7b7d7b"/>
+          <text x="237.5" y="181" text-anchor="middle" font-size="24" fill="#fff">12V OFF</text>
+        </g>
+        <text id="sim-detail" x="12" y="234" font-size="13" fill="#7b7d7b">AC 38W   12V 0W</text>
+      </svg>
+    </svg>
+    <div class="simchips" role="group" aria-label="Show a screen state">
+      <button type="button" data-sim="play">▶ Play start-up</button>
+      <button type="button" data-sim="scanning" aria-pressed="false">Scanning</button>
+      <button type="button" data-sim="connected" aria-pressed="true">Connected</button>
+      <button type="button" data-sim="nosignal" aria-pressed="false">No signal</button>
+      <button type="button" data-sim="rejected" aria-pressed="false">Auth rejected</button>
+    </div>
+    <p class="simsay" id="sim-say" aria-live="polite"></p>
+  </div>
+
+  <div class="worked"><b>You'll know it worked when</b>the dot turns green, the corner says <strong>Connected</strong>, and the battery percentage appears. This usually takes under 30 seconds.</div>
+
+  <details class="fix">
+    <summary>It didn't work</summary>
+    <div><dl>
+      <div><dt>It stays on Scanning</dt><dd>Nine times out of ten the phone app still has the connection. Swipe the app away, or switch Bluetooth off on the phone for a minute. Also check the battery is on and close by.</dd></div>
+      <div><dt>It says Auth rejected</dt><dd>The user id in <code>secrets.h</code> is not the one for the account this battery is paired with. Redo step 4 with the right account, then redo step 5.</dd></div>
+      <div><dt>It keeps cycling between Connecting and Reconnecting</dt><dd>Move the board closer. If it carries on, run <code>pio device monitor</code> in Terminal, copy what it prints, and show it to Claude. Press <kbd>Ctrl C</kbd> to stop the monitor.</dd></div>
+    </dl></div>
+  </details>
+  <label class="donebox"><input type="checkbox" id="done-6" data-step="6"> Step 6 done</label>
+</section>
+
+<!-- ================= STEP 7 ================= -->
+<section class="step" id="s7">
+  <div class="step-head"><span class="num">7</span><h2>Test the two buttons</h2></div>
+  <p>Tap <strong>AC</strong> on the real screen. It shows <code>AC ...</code> for a moment, then turns green and says <code>AC ON</code> once the battery confirms it has switched. Tap again to turn it off. The <strong>12V</strong> button works the same way for the car socket. You can practise on the copy of the screen in step 6.</p>
+  <ul class="dodont">
+    <li class="do"><span>Press firmly. This screen senses pressure, unlike a phone. A fingernail or the plastic pen works best.</span></li>
+    <li class="do"><span>A button that says <code>--</code> is waiting for the battery to report in. Give it a few seconds.</span></li>
+  </ul>
+
+  <div class="worked"><b>You'll know it worked when</b>the button on the screen changes colour and the matching light on the battery itself comes on or goes off.</div>
+
+  <details class="fix">
+    <summary>It didn't work</summary>
+    <div><dl>
+      <div><dt>Nothing happens, or the wrong button reacts</dt><dd>The touch layer needs lining up with the picture. Run <code>pio device monitor</code>, tap each of the four corners of the screen once, and copy the <code>[touch]</code> lines it prints. Give them to Claude and say <em>“Calibrate the touch with these.”</em> Press <kbd>Ctrl C</kbd> to stop the monitor.</dd></div>
+      <div><dt>The button turns red and says RETRY</dt><dd>The battery did not confirm within four seconds. Tap it again.</dd></div>
+    </dl></div>
+  </details>
+  <label class="donebox"><input type="checkbox" id="done-7" data-step="7"> Step 7 done</label>
+</section>
+
+<!-- ================= STEP 8 ================= -->
+<section class="step" id="s8">
+  <div class="step-head"><span class="num">8</span><h2>Move it into the van</h2></div>
+  <p>Unplug the board from the Mac. The program stays on it for good. Then plug the same cable into <strong>any USB socket</strong>. One of the USB sockets on the EcoFlow itself works well.</p>
+
+  <div class="panel">
+    <svg viewBox="0 0 640 190" role="img" aria-label="The board plugged into a USB socket on the battery">
+      <rect x="20" y="24" width="250" height="146" rx="16" fill="#2b343b"/>
+      <rect x="38" y="42" width="110" height="52" rx="6" fill="#0b0f12"/>
+      <text x="93" y="77" text-anchor="middle" font-size="24" font-weight="700" fill="#e9eff3" font-family="ui-monospace,Menlo,monospace">87%</text>
+      <rect x="166" y="44" width="86" height="22" rx="5" fill="#3b4650"/><rect x="166" y="72" width="86" height="22" rx="5" fill="#3b4650"/>
+      <rect x="40" y="118" width="26" height="14" rx="2" fill="#8d969c"/><rect x="74" y="118" width="26" height="14" rx="2" fill="#8d969c"/><rect x="108" y="118" width="26" height="14" rx="2" fill="#8d969c"/>
+      <text x="145" y="155" text-anchor="middle" font-size="18" fill="#c4ccd1" font-family="system-ui,sans-serif">your battery</text>
+      <path d="M121 132 V150 Q121 176 150 176 H360 Q386 176 386 150 V134 H420" fill="none" stroke="#3b4650" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <use href="#sym-board" x="420" y="24" width="200" height="140"/>
+      <rect x="434" y="36" width="172" height="20" fill="#181c18"/>
+      <circle cx="446" cy="46" r="5" fill="#00c800"/>
+      <text x="456" y="51" font-size="13" fill="#fff" font-family="system-ui,sans-serif">Connected</text>
+      <text x="444" y="100" font-size="34" font-weight="700" fill="#fff" font-family="ui-monospace,Menlo,monospace">87.3%</text>
+      <rect x="444" y="112" width="74" height="32" rx="6" fill="#00ac00"/><rect x="524" y="112" width="74" height="32" rx="6" fill="#393c39"/>
+    </svg>
+    <p class="caption">As soon as it has power it starts by itself and finds the battery again. No Mac needed.</p>
+  </div>
+
+  <ul class="dodont">
+    <li class="do"><span>It uses about 1 watt. Left on around the clock, that is roughly 3% of a River 2 Pro per day.</span></li>
+    <li class="do"><span>If the battery goes out of range or is switched off, the screen says <strong>No signal</strong> or <strong>Scanning</strong>. It reconnects by itself when the battery is back.</span></li>
+    <li class="do"><span>To use the phone app over Bluetooth, unplug the board for a moment. Only one of them can be connected at a time.</span></li>
+    <li class="dont"><span>Do not leave the bare board loose where it can touch metal. Tape it to something or put it in a small plastic case.</span></li>
+  </ul>
+  <label class="donebox"><input type="checkbox" id="done-8" data-step="8"> Step 8 done</label>
+</section>
+
+<hr>
+
+<!-- ================= BREADBOARD ================= -->
+<section class="step" id="breadboard">
+  <p class="eyebrow">Not needed for this project</p>
+  <h2>How a breadboard works, for next time</h2>
+  <p>A breadboard lets you connect parts by pushing their legs into holes. Under the holes are hidden metal strips. Two things pushed into the same strip are connected, as if you had joined them with a wire. Point at any hole to see which other holes share its strip.</p>
+
+  <div class="panel">
+    <div class="bbwrap"><svg id="bb" viewBox="0 0 578 410" role="img" aria-label="Breadboard. Each column of five holes is connected inside. The long rows at the top and bottom are power rails."></svg></div>
+    <div class="bbbtns" role="group" aria-label="Show an example">
+      <button type="button" data-bb="col" aria-pressed="true">A strip of five</button>
+      <button type="button" data-bb="rail" aria-pressed="false">A power rail</button>
+      <button type="button" data-bb="gap" aria-pressed="false">The middle gap</button>
+    </div>
+    <p id="bb-say" class="caption" aria-live="polite"></p>
+  </div>
+  <p class="muted">Your black board is pushed in across the middle gap, which is the correct way for a board like that to sit. It is not connected to anything and nothing is powering it, so it is harmless where it is. You can pull it straight out and put both away.</p>
+</section>
+
+<hr>
+
+<section class="step">
+  <h2>Words you will run into</h2>
+  <dl class="gloss">
+    <div><dt>CYD</dt><dd>Cheap Yellow Display. The yellow board. Its formal name is ESP32-2432S028R.</dd></div>
+    <div><dt>ESP32</dt><dd>The chip on the yellow board that does the thinking. It has Bluetooth built in.</dd></div>
+    <div><dt>Firmware</dt><dd>The program that runs on the board.</dd></div>
+    <div><dt>Flash, upload</dt><dd>Copy the firmware from your Mac onto the board.</dd></div>
+    <div><dt>PlatformIO, pio</dt><dd>The tool on your Mac that builds the firmware and flashes it.</dd></div>
+    <div><dt>Serial monitor</dt><dd>A live diary the board prints to your Mac over the USB cable. Useful when something is wrong.</dd></div>
+    <div><dt>BLE</dt><dd>Bluetooth Low Energy. The kind of Bluetooth the battery uses.</dd></div>
+    <div><dt>secrets.h</dt><dd>Your private settings file. It holds your user id and stays on your Mac.</dd></div>
+  </dl>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+
+  /* ---- copy buttons ---- */
+  $$('.cmd button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.parentNode.querySelector('code');
+      var text = code.textContent;
+      function ok() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(code);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        try { if (document.execCommand('copy')) ok(); else btn.textContent = 'Press ⌘C'; }
+        catch (e) { btn.textContent = 'Press ⌘C'; }
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok, fallback);
+      } else { fallback(); }
+    });
+  });
+
+  /* ---- board variant ---- */
+  var names = { cyd: 'one-socket', cyd2usb: 'two-socket' };
+  function setVariant(v, save) {
+    if (!names[v]) return;
+    $$('.pick button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.variant === v)); });
+    $$('.env').forEach(function (e) { e.textContent = v; });
+    $('#envnote').textContent = 'This is the command for a ' + names[v] + ' board, as you answered in step 1.';
+    if (save) store.set('efm-variant', v);
+  }
+  $$('.pick button').forEach(function (b) {
+    b.addEventListener('click', function () { setVariant(b.dataset.variant, true); });
+  });
+  setVariant(store.get('efm-variant'), false);
+
+  /* ---- progress ---- */
+  var boxes = $$('.donebox input');
+  function refresh() {
+    var n = 0;
+    boxes.forEach(function (b) {
+      if (b.checked) n++;
+      var pip = $('.pips a[href="#s' + b.dataset.step + '"]');
+      pip.classList.toggle('done', b.checked);
+    });
+    $('#count').textContent = n === boxes.length ? 'All 8 steps done' : n + ' of 8 steps done';
+  }
+  boxes.forEach(function (b) {
+    b.checked = store.get('efm-done-' + b.dataset.step) === '1';
+    b.addEventListener('change', function () { store.set('efm-done-' + b.dataset.step, b.checked ? '1' : '0'); refresh(); });
+  });
+  refresh();
+
+  /* ---- screen simulator (mirrors src/ui/ui.cpp) ---- */
+  var AMBER = '#ffa400', GREEN = '#00c800', RED = '#e81c20';
+  var states = {
+    scanning:   { dot: AMBER, status: 'Scanning', detail: 'Close the EcoFlow app if it is open',
+                  say: 'Looking for your battery. Normal for the first few seconds. If it stays here, the battery is off, too far away, or the phone app is holding the connection.' },
+    connecting: { dot: AMBER, status: 'Connecting', detail: '', say: 'Found the battery and is opening a connection.' },
+    key:        { dot: AMBER, status: 'Key exchange', detail: '', say: 'The board and the battery are agreeing on a secret code so nobody else can listen in.' },
+    auth:       { dot: AMBER, status: 'Authenticating', detail: '', say: 'The board is showing the battery your user id.' },
+    connected:  { dot: GREEN, status: 'Connected', live: true,
+                  say: 'Live numbers from the battery. IN is power going in, OUT is power being used. Tap AC or 12V to switch that output.' },
+    nosignal:   { dot: AMBER, status: 'No signal', detail: '',
+                  say: 'It was connected, then the battery went quiet. It is probably out of range or switched off. Leave it. It reconnects by itself.' },
+    rejected:   { dot: RED, status: 'Auth rejected', detail: 'Check ECOFLOW_USER_ID / re-pair in app',
+                  say: 'The battery refused the user id. Redo step 4 with the EcoFlow account this battery is paired with, then step 5.' }
+  };
+  var sim = { state: 'connected', ac: true, dc: false, acPending: false, dcPending: false, timers: [] };
+  function setBtn(id, label, on, pending, live) {
+    var g = $(id), rect = g.querySelector('rect'), text = g.querySelector('text');
+    if (!live) { rect.setAttribute('fill', '#212421'); text.setAttribute('fill', '#7b7d7b'); text.textContent = label + ' --'; }
+    else if (pending) { rect.setAttribute('fill', '#393c39'); text.setAttribute('fill', '#7b7d7b'); text.textContent = label + ' ...'; }
+    else { rect.setAttribute('fill', on ? '#00ac00' : '#393c39'); text.setAttribute('fill', '#fff'); text.textContent = label + (on ? ' ON' : ' OFF'); }
+  }
+  function render() {
+    var st = states[sim.state], live = !!st.live;
+    $('#sim-dot').setAttribute('fill', st.dot);
+    $('#sim-status').textContent = st.status;
+    $('#sim-pct').textContent = live ? '87.3' : '--';
+    $('#sim-remain').textContent = live ? (sim.ac ? '5h12m left' : '48h0m left') : '';
+    $('#sim-in').textContent = live ? '0W' : '--';
+    $('#sim-out').textContent = live ? (sim.ac ? '42W' : '4W') : '--';
+    $('#sim-detail').textContent = live ? 'AC ' + (sim.ac ? 38 : 0) + 'W   12V 0W' : st.detail;
+    setBtn('#sim-ac', 'AC', sim.ac, sim.acPending, live);
+    setBtn('#sim-dc', '12V', sim.dc, sim.dcPending, live);
+    $('#sim-say').textContent = st.say;
+    $$('.simchips button[aria-pressed]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.sim === sim.state)); });
+  }
+  function clearTimers() { sim.timers.forEach(clearTimeout); sim.timers = []; sim.acPending = sim.dcPending = false; }
+  function go(name) { sim.state = name; render(); }
+  $$('.simchips button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      clearTimers();
+      if (b.dataset.sim !== 'play') { go(b.dataset.sim); return; }
+      var seq = [['scanning', 0], ['connecting', 2200], ['key', 3500], ['auth', 4800], ['connected', 6100]];
+      seq.forEach(function (s) { sim.timers.push(setTimeout(function () { go(s[0]); }, s[1])); });
+    });
+  });
+  function tapBtn(which) {
+    if (!states[sim.state].live) { $('#sim-say').textContent = 'The buttons only work while it says Connected. Tap Connected below, then try again.'; return; }
+    var p = which + 'Pending';
+    if (sim[p]) return;
+    sim[p] = true; render();
+    $('#sim-say').textContent = 'Command sent. The button waits for the battery to confirm before it changes colour.';
+    sim.timers.push(setTimeout(function () { sim[p] = false; sim[which] = !sim[which]; render(); }, 1100));
+  }
+  [['#sim-ac', 'ac'], ['#sim-dc', 'dc']].forEach(function (pair) {
+    var g = $(pair[0]);
+    g.addEventListener('click', function () { tapBtn(pair[1]); });
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapBtn(pair[1]); } });
+  });
+  render();
+
+  /* ---- breadboard ---- */
+  var NS = 'http://www.w3.org/2000/svg';
+  var bb = $('#bb'), COLS = 24, P = 22, X0 = 36;
+  var rowY = { A: 96, B: 118, C: 140, D: 162, E: 184, F: 232, G: 254, H: 276, I: 298, J: 320 };
+  var railY = { tp: 30, tm: 52, bp: 362, bm: 384 };
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || bb).appendChild(e); return e;
+  }
+  function cx(c) { return X0 + c * P; }
+  el('rect', { x: 2, y: 2, width: 574, height: 406, rx: 8, fill: '#ecefe6', stroke: '#c9cec2', 'stroke-width': 2 });
+  el('rect', { x: 2, y: 199, width: 574, height: 18, fill: '#d9ddd1' });
+  // printed rail lines, broken in the middle like the real board
+  [['tp', -12, '#d2493a'], ['tm', 12, '#3f6fd0'], ['bp', -12, '#d2493a'], ['bm', 12, '#3f6fd0']].forEach(function (r) {
+    var y = railY[r[0]] + r[1];
+    el('line', { x1: cx(0) - 8, y1: y, x2: cx(11) + 8, y2: y, stroke: r[2], 'stroke-width': 2 });
+    el('line', { x1: cx(12) - 8, y1: y, x2: cx(23) + 8, y2: y, stroke: r[2], 'stroke-width': 2 });
+  });
+  // hidden metal strips, drawn faintly
+  var strips = el('g', { stroke: '#c3c8ba', 'stroke-width': 5, 'stroke-linecap': 'round' });
+  for (var c = 0; c < COLS; c++) {
+    el('line', { x1: cx(c), y1: rowY.A, x2: cx(c), y2: rowY.E }, strips);
+    el('line', { x1: cx(c), y1: rowY.F, x2: cx(c), y2: rowY.J }, strips);
+  }
+  Object.keys(railY).forEach(function (k) {
+    el('line', { x1: cx(0), y1: railY[k], x2: cx(11), y2: railY[k] }, strips);
+    el('line', { x1: cx(12), y1: railY[k], x2: cx(23), y2: railY[k] }, strips);
+  });
+  var hl = el('rect', { rx: 10, fill: '#f0c02c', 'fill-opacity': 0.75, stroke: '#c2940f', 'stroke-width': 2 });
+  var holes = el('g', { fill: '#30363b' });
+  for (c = 0; c < COLS; c++) {
+    Object.keys(rowY).forEach(function (r) { el('circle', { cx: cx(c), cy: rowY[r], r: 4 }, holes); });
+    Object.keys(railY).forEach(function (k) { el('circle', { cx: cx(c), cy: railY[k], r: 4 }, holes); });
+  }
+  var labels = el('g', { fill: '#6b7479', 'font-size': 11, 'font-family': 'system-ui,sans-serif', 'text-anchor': 'middle' });
+  for (c = 0; c < COLS; c += 5) el('text', { x: cx(c), y: 80 }, labels).textContent = c;
+  Object.keys(rowY).forEach(function (r) { el('text', { x: 14, y: rowY[r] + 4 }, labels).textContent = r; });
+  [['tp', '+', '#d2493a'], ['tm', '−', '#3f6fd0'], ['bp', '+', '#d2493a'], ['bm', '−', '#3f6fd0']].forEach(function (r) {
+    el('text', { x: 14, y: railY[r[0]] + 5, fill: r[2], 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle', 'font-family': 'system-ui,sans-serif' }).textContent = r[1];
+  });
+  // the black board from the photo, sitting across the gap
+  el('rect', { x: cx(8) - 11, y: rowY.B - 11, width: 8 * P + 22, height: rowY.I - rowY.B + 22, rx: 6, fill: '#1d2023', 'fill-opacity': 0.9 });
+  el('text', { x: cx(12), y: 213, fill: '#e9eff3', 'font-size': 15, 'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'system-ui,sans-serif' }).textContent = 'your black board';
+
+  var says = {
+    col: 'These five holes are one strip of metal. Parts pushed into the same strip are connected to each other. The strip stops at the middle gap.',
+    railp: 'A power rail, marked + in red. It is one long strip used to share power along the board. On your board the printed line has a break in the middle, so the left half and the right half are separate.',
+    railm: 'A ground rail, marked − in blue. Same idea as the + rail, used for the return side of the power. It is also split into a left half and a right half.',
+    gap: 'The gap splits the board into a top half and a bottom half that are not connected. Chips and small boards sit across it so the legs on one side are not joined to the legs on the other. That is why your black board is sitting where it is.'
+  };
+  function show(kind, a, b) {
+    if (kind === 'col') { set(cx(a) - 10, (b ? rowY.F : rowY.A) - 10, 20, 4 * P + 20); $('#bb-say').textContent = says.col; }
+    else if (kind === 'rail') { set(cx(b ? 12 : 0) - 10, railY[a] - 10, 11 * P + 20, 20); $('#bb-say').textContent = a.charAt(1) === 'p' ? says.railp : says.railm; }
+    else { set(8, 198, 562, 20); $('#bb-say').textContent = says.gap; }
+    function set(x, y, w, h) { hl.setAttribute('x', x); hl.setAttribute('y', y); hl.setAttribute('width', w); hl.setAttribute('height', h); }
+  }
+  function press(which) { $$('.bbbtns button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.bb === which)); }); }
+  function at(evt) {
+    var m = bb.getScreenCTM(); if (!m) return;
+    var pt = bb.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+    var p = pt.matrixTransform(m.inverse());
+    var col = Math.round((p.x - X0) / P);
+    if (col < 0 || col >= COLS) return;
+    var hit = null;
+    Object.keys(railY).forEach(function (k) { if (Math.abs(p.y - railY[k]) < 11) hit = ['rail', k, col >= 12]; });
+    if (!hit && p.y > rowY.A - 11 && p.y < rowY.E + 11) hit = ['col', col, false];
+    if (!hit && p.y > rowY.F - 11 && p.y < rowY.J + 11) hit = ['col', col, true];
+    if (!hit && p.y > 196 && p.y < 220) hit = ['gap'];
+    if (hit) { show(hit[0], hit[1], hit[2]); press(hit[0]); }
+  }
+  bb.addEventListener('pointermove', at);
+  bb.addEventListener('pointerdown', at);
+  $$('.bbbtns button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      press(b.dataset.bb);
+      if (b.dataset.bb === 'col') show('col', 4, false);
+      else if (b.dataset.bb === 'rail') show('rail', 'tp', false);
+      else show('gap');
+    });
+  });
+  show('col', 4, false);
+})();
+</script>
+</body>
+</html>

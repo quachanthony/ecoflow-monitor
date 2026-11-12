@@ -1,6 +1,7 @@
 #include "connection.h"
 
 #include <Arduino.h>
+#include <esp_task_wdt.h>
 #include <string.h>
 
 namespace ef {
@@ -92,6 +93,9 @@ void Connection::begin(const char *user_id, const char *sn_filter) {
 
   NimBLEScan *scan = NimBLEDevice::getScan();
   scan->setAdvertisedDeviceCallbacks(&g_scan_callbacks, false);
+  // Callback-only scanning: don't let NimBLE keep every advertiser it ever
+  // sees — an open-ended scan in a busy campground would eat the heap.
+  scan->setMaxResults(0);
   scan->setActiveScan(true);
   scan->setInterval(100);
   scan->setWindow(80);
@@ -234,8 +238,7 @@ void Connection::tick(uint32_t now_ms) {
   }
 }
 
-void Connection::enterBackoff(uint32_t now_ms, const char *reason) {
-  Serial.printf("[ble] disconnect: %s\n", reason);
+void Connection::dropLink() {
   if (scanning_) {
     NimBLEDevice::getScan()->stop();
     scanning_ = false;
@@ -253,6 +256,11 @@ void Connection::enterBackoff(uint32_t now_ms, const char *reason) {
   }
   simple_parser_.reset();
   assembler_.reset();
+}
+
+void Connection::enterBackoff(uint32_t now_ms, const char *reason) {
+  Serial.printf("[ble] disconnect: %s\n", reason);
+  dropLink();
 
   backoff_interval_ms_ =
       backoff_interval_ms_ == 0
@@ -272,6 +280,9 @@ bool Connection::connectAndSubscribe() {
     client_ = nullptr;
     return false;
   }
+  // connect() may have used most of its 10 s timeout; give service discovery
+  // a fresh watchdog budget so a slow-but-successful connect doesn't reboot us
+  esp_task_wdt_reset();
 
   // Find a known write/notify characteristic pair in any service
   for (NimBLERemoteService *svc : *client_->getServices(true)) {
@@ -431,8 +442,7 @@ void Connection::handlePacket(const Packet &packet, uint32_t now_ms) {
     if (is_auth_reply) {
       if (packet.payload.size() == 1 && packet.payload[0] == 0x00) {
         Serial.println("[ble] authenticated");
-        backoff_interval_ms_ = 0;
-        setState(ConnState::AUTHENTICATED, now_ms);
+        enterAuthenticated(now_ms);
       } else {
         // 0x01..0x07: refresh-token / already-bound / wrong-key / ... —
         // credentials are wrong for this device, backoff won't cure it
@@ -440,7 +450,9 @@ void Connection::handlePacket(const Packet &packet, uint32_t now_ms) {
                       packet.payload.empty()
                           ? "<empty>"
                           : String(packet.payload[0]).c_str());
-        if (client_ != nullptr && client_->isConnected()) client_->disconnect();
+        // release the client too: NimBLE only hands out 3, and each retry
+        // creates a new one
+        dropLink();
         backoff_until_ms_ = now_ms + 60000;
         state_ = ConnState::AUTH_REJECTED;
       }
@@ -448,8 +460,7 @@ void Connection::handlePacket(const Packet &packet, uint32_t now_ms) {
     }
     // Data before the auth ack also means we're in (matches the reference)
     Serial.println("[ble] authenticated (data flowing)");
-    backoff_interval_ms_ = 0;
-    setState(ConnState::AUTHENTICATED, now_ms);
+    enterAuthenticated(now_ms);
     river2::parseTelemetry(packet, device_state_, now_ms);
     return;
   }
@@ -502,6 +513,17 @@ bool Connection::sendDcToggle(bool on) {
 uint32_t Connection::telemetryAge(uint32_t now_ms) const {
   if (device_state_.last_telemetry_ms == 0) return UINT32_MAX;
   return now_ms - device_state_.last_telemetry_ms;
+}
+
+void Connection::enterAuthenticated(uint32_t now_ms) {
+  // Start every session from a clean slate. Values left over from the last
+  // session are no longer trustworthy, and its old telemetry timestamp would
+  // trip the "telemetry stopped" check on the very next tick — after any
+  // outage longer than TELEMETRY_DEAD_MS the box could never stay connected.
+  device_state_ = river2::DeviceState();
+  device_state_.last_telemetry_ms = now_ms;  // silence timer starts now
+  backoff_interval_ms_ = 0;
+  setState(ConnState::AUTHENTICATED, now_ms);
 }
 
 void Connection::setState(ConnState s, uint32_t now_ms) {
