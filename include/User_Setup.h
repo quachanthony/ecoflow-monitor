@@ -3,17 +3,10 @@
 //   https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display
 // Loaded via platformio.ini: -DUSER_SETUP_LOADED=1 -include include/User_Setup.h
 
-// Two hardware variants are sold under the same name:
-//   - ONE USB port (micro-USB)            -> ILI9341 panel  (env:cyd)
-//   - TWO USB ports (USB-C + micro-USB)   -> ST7789 panel   (env:cyd2usb)
-// Wrong variant = inverted / wrong colours. Pick the matching PlatformIO env.
-#ifdef CYD_2USB
-#define ST7789_DRIVER
-#define TFT_RGB_ORDER TFT_BGR
-#define TFT_INVERSION_OFF
-#else
-#define ILI9341_2_DRIVER  // alternative init sequence used by the CYD panel
-#endif
+// ILI9341_2 is the init sequence that works on the CYD. Verified 2026-11-12 on a
+// two-USB-port board (USB-C + micro-USB): this config shows the UI, while the
+// community "CYD2USB" ST7789 config left the same board's screen blank.
+#define ILI9341_2_DRIVER
 
 #define TFT_WIDTH 240
 #define TFT_HEIGHT 320

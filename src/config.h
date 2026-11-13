@@ -20,6 +20,11 @@
 // accepted presses are rate-limited.
 #define TOUCH_DEBOUNCE_MS 400
 
+// --- Screen sleep ---
+// Backlight switches off after this long without a touch, so the box isn't a
+// night light in the van. Any tap wakes it; that tap never presses a button.
+#define SCREEN_SLEEP_MS 60000
+
 // --- Timing ---
 #define UI_REFRESH_MS 1000          // numeric field refresh cadence
 #define STALE_TELEMETRY_MS 10000    // show "NO SIGNAL" past this age

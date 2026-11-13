@@ -102,19 +102,18 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5p
 .hero { padding-block: 1.5rem 0.5rem; }
 .eyebrow { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
 .lead { font-size: 1.2rem; max-width: 36rem; }
-.things { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.9rem; }
 .thing {
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 0.9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.25rem;
 }
-.thing svg { width: 100%; height: auto; display: block; }
+.thing svg { flex: 1 1 12rem; min-width: 0; max-width: 16rem; height: auto; display: block; }
+.thing-text { flex: 1 1 16rem; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 .thing p { font-size: 0.95rem; }
 .chip {
   align-self: flex-start; font-size: 0.8rem; font-weight: 700; border-radius: 99px;
   padding: 0.15rem 0.65rem;
 }
 .chip.yes { background: var(--go-bg); color: var(--go); }
-.chip.no { background: var(--stop-bg); color: var(--stop); }
 .bigfact {
   background: var(--pcb); color: var(--pcb-ink); border-radius: 14px;
   padding: 1rem 1.15rem; font-family: var(--font-display); font-size: 1.2rem; font-weight: 650;
@@ -145,7 +144,6 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5p
   flex: 1; min-width: 0; overflow-x: auto; white-space: pre;
   padding: 0.75rem 0.9rem; font-size: 0.92rem; background: none;
 }
-.cmd .env { color: var(--pcb); font-weight: 700; }
 .cmd button {
   flex: none; border: 0; border-left: 1px solid #ffffff22; background: none; color: var(--code-muted);
   font: 600 0.8rem var(--font-body); padding: 0 0.9rem; cursor: pointer; min-width: 4.4rem;
@@ -173,33 +171,18 @@ details.fix dl { margin: 0; display: flex; flex-direction: column; gap: 0.7rem; 
 .donebox { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 650; cursor: pointer; align-self: flex-start; }
 .donebox input { width: 1.25rem; height: 1.25rem; accent-color: var(--go); }
 
-/* variant picker */
-.pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.75rem; }
-.pick button {
-  background: var(--surface); color: var(--ink); border: 2px solid var(--line); border-radius: 14px;
-  padding: 0.8rem; cursor: pointer; font: 650 1rem var(--font-display); text-align: center;
-  display: flex; flex-direction: column; gap: 0.4rem; align-items: center;
-}
-.pick button svg { width: 100%; max-width: 15rem; height: auto; }
-.pick button small { font: 400 0.85rem var(--font-body); color: var(--muted); }
-.pick button[aria-pressed="true"] { border-color: var(--go); background: var(--go-bg); }
-.pick button[aria-pressed="true"]::after { content: "✓ Selected"; color: var(--go); font-size: 0.85rem; }
-
 /* simulator */
 .sim { max-width: 26rem; margin-inline: auto; width: 100%; }
 .sim text { font-family: var(--font-body); }
 .sim .mono { font-family: var(--font-mono); font-weight: 700; }
 .sim .tap { cursor: pointer; }
 .simchips { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
-.simchips button, .bbbtns button {
+.simchips button {
   border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
   border-radius: 99px; padding: 0.3rem 0.8rem; font: 600 0.88rem var(--font-body); cursor: pointer;
 }
-.simchips button[aria-pressed="true"], .bbbtns button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.simchips button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
 .simsay { text-align: center; min-height: 4.2em; font-size: 0.97rem; }
-.bbbtns { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.bbwrap { overflow-x: auto; }
-.bbwrap svg { min-width: 30rem; touch-action: pan-x pan-y; }
 
 .gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.6rem 1.5rem; margin: 0; }
 .gloss dt { font-weight: 650; font-family: var(--font-display); }
@@ -241,9 +224,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
       <circle cx="9" cy="131" r="3.5" fill="#8f6f0c"/><circle cx="191" cy="131" r="3.5" fill="#8f6f0c"/>
       <rect x="14" y="12" width="172" height="116" rx="3" fill="#0b0f12"/>
     </symbol>
-    <pattern id="holes" width="8" height="8" patternUnits="userSpaceOnUse">
-      <circle cx="4" cy="4" r="1.3" fill="#3a4146"/>
-    </pattern>
   </defs>
 </svg>
 
@@ -263,10 +243,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
 <header class="hero stack">
   <p class="eyebrow">EcoFlow River 2 Bluetooth monitor</p>
   <h1>There is nothing to wire.</h1>
-  <p class="lead">You have three things on the table. Only one of them is needed, and it is already fully built. Here is what each one is.</p>
+  <p class="lead">The whole project is one board, and it arrives fully built.</p>
 
-  <div class="things">
-    <div class="thing">
+  <div class="thing">
       <svg viewBox="0 0 200 120" role="img" aria-label="Yellow board with a touchscreen showing a battery percentage">
         <use href="#sym-board" x="20" y="4" width="160" height="112"/>
         <text x="38" y="50" font-family="ui-monospace,Menlo,monospace" font-weight="700" font-size="26" fill="#fff">87%</text>
@@ -275,41 +254,11 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
         <text x="67" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">AC ON</text>
         <text x="131" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">12V OFF</text>
       </svg>
+      <div class="thing-text">
       <span class="chip yes">This is the whole project</span>
       <h3>The yellow screen board, in the cardboard box</h3>
       <p>A tiny computer, a touchscreen and a Bluetooth radio, all on one board. Its nickname is the <strong>Cheap Yellow Display</strong>, or CYD. The label on your box calls it ESP-S028R.</p>
-    </div>
-    <div class="thing">
-      <svg viewBox="0 0 200 120" role="img" aria-label="Small black circuit board with a silver metal square and two rows of pins">
-        <rect x="34" y="32" width="132" height="56" rx="5" fill="#1d2023"/>
-        <g fill="#d4a72c">
-          <rect x="40" y="35" width="3" height="5"/><rect x="48" y="35" width="3" height="5"/><rect x="56" y="35" width="3" height="5"/><rect x="64" y="35" width="3" height="5"/><rect x="72" y="35" width="3" height="5"/><rect x="80" y="35" width="3" height="5"/><rect x="88" y="35" width="3" height="5"/><rect x="96" y="35" width="3" height="5"/><rect x="104" y="35" width="3" height="5"/><rect x="112" y="35" width="3" height="5"/><rect x="120" y="35" width="3" height="5"/><rect x="128" y="35" width="3" height="5"/><rect x="136" y="35" width="3" height="5"/><rect x="144" y="35" width="3" height="5"/>
-          <rect x="40" y="80" width="3" height="5"/><rect x="48" y="80" width="3" height="5"/><rect x="56" y="80" width="3" height="5"/><rect x="64" y="80" width="3" height="5"/><rect x="72" y="80" width="3" height="5"/><rect x="80" y="80" width="3" height="5"/><rect x="88" y="80" width="3" height="5"/><rect x="96" y="80" width="3" height="5"/><rect x="104" y="80" width="3" height="5"/><rect x="112" y="80" width="3" height="5"/><rect x="120" y="80" width="3" height="5"/><rect x="128" y="80" width="3" height="5"/><rect x="136" y="80" width="3" height="5"/><rect x="144" y="80" width="3" height="5"/>
-        </g>
-        <rect x="52" y="44" width="40" height="32" rx="2" fill="#c3c9cd"/>
-        <path d="M38 48 h8 v6 h-6 v6 h6 v6 h-6 v6 h8" fill="none" stroke="#d4a72c" stroke-width="2"/>
-        <rect x="150" y="51" width="18" height="18" rx="2" fill="#b8bfc4"/>
-        <rect x="112" y="52" width="16" height="16" fill="#2f3438"/>
-      </svg>
-      <span class="chip no">Not needed</span>
-      <h3>The little black thing</h3>
-      <p>A different mini computer called a <strong>NodeMCU ESP8266</strong> (the silver square on it says ESP8266MOD). It has Wi-Fi but no Bluetooth, and your battery only speaks Bluetooth. Keep it for another project.</p>
-    </div>
-    <div class="thing">
-      <svg viewBox="0 0 200 120" role="img" aria-label="White breadboard covered in rows of small holes">
-        <rect x="14" y="22" width="172" height="76" rx="4" fill="#ecefe6" stroke="#c9cec2"/>
-        <rect x="22" y="38" width="156" height="20" fill="url(#holes)"/>
-        <rect x="22" y="62" width="156" height="20" fill="url(#holes)"/>
-        <rect x="22" y="27" width="156" height="8" fill="url(#holes)"/>
-        <rect x="22" y="85" width="156" height="8" fill="url(#holes)"/>
-        <line x1="22" y1="26" x2="178" y2="26" stroke="#d2493a" stroke-width="1.2"/>
-        <line x1="22" y1="94" x2="178" y2="94" stroke="#3f6fd0" stroke-width="1.2"/>
-        <rect x="14" y="58.5" width="172" height="3" fill="#d5dacd"/>
-      </svg>
-      <span class="chip no">Not needed</span>
-      <h3>The white breadboard</h3>
-      <p>A board for joining loose parts together without soldering. This project has no loose parts, so nothing goes on it. <a href="#breadboard">How it works</a>, for next time.</p>
-    </div>
+      </div>
   </div>
 
   <div class="bigfact">Wires to connect: one USB cable.
@@ -319,33 +268,9 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
 
 <!-- ================= STEP 1 ================= -->
 <section class="step" id="s1">
-  <div class="step-head"><span class="num">1</span><h2>Open the box and count the USB sockets</h2></div>
+  <div class="step-head"><span class="num">1</span><h2>Open the box</h2></div>
   <p>Inside you should find the yellow board and a USB cable. There may also be a small plastic pen for tapping the screen and a short wire with a white plug. Ignore that wire.</p>
-  <p>Look around the edges of the yellow board. <strong>How many USB sockets does it have?</strong> Tap your answer. The commands further down this page change to match.</p>
-
-  <div class="pick" role="group" aria-label="How many USB sockets does your board have?">
-    <button type="button" id="pick-cyd" data-variant="cyd" aria-pressed="false">
-      <svg viewBox="0 0 200 84" aria-hidden="true">
-        <rect x="10" y="6" width="180" height="56" rx="8" fill="#f0c02c" stroke="#c2940f" stroke-width="2"/>
-        <rect x="86" y="50" width="28" height="18" rx="3" fill="#b8bfc4" stroke="#7d868c"/>
-        <rect x="91" y="60" width="18" height="5" rx="1" fill="#30363b"/>
-      </svg>
-      One socket
-      <small>a small flat one (micro-USB)</small>
-    </button>
-    <button type="button" id="pick-cyd2usb" data-variant="cyd2usb" aria-pressed="false">
-      <svg viewBox="0 0 200 84" aria-hidden="true">
-        <rect x="10" y="6" width="180" height="56" rx="8" fill="#f0c02c" stroke="#c2940f" stroke-width="2"/>
-        <rect x="52" y="50" width="28" height="18" rx="3" fill="#b8bfc4" stroke="#7d868c"/>
-        <rect x="57" y="60" width="18" height="5" rx="1" fill="#30363b"/>
-        <rect x="116" y="50" width="32" height="18" rx="9" fill="#b8bfc4" stroke="#7d868c"/>
-        <rect x="122" y="59" width="20" height="5" rx="2.5" fill="#30363b"/>
-      </svg>
-      Two sockets
-      <small>a flat one and an oval one (USB-C)</small>
-    </button>
-  </div>
-  <p class="caption">The two versions look the same from the front but have different screens inside. A wrong answer only makes the colours look odd. It cannot damage anything, and you can change it later.</p>
+  <p>Look around the edges of the yellow board for its USB sockets. Every board has a <strong>small flat one</strong> (micro-USB). Some also have an <strong>oval one</strong> (USB-C). Either can be used. Step 2 shows which cable goes with which.</p>
 
   <div class="panel">
     <h3>Handling it</h3>
@@ -387,7 +312,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
 
   <ul class="dodont">
     <li class="do"><span>If your Mac only has small oval sockets (USB-C), put a USB-C adapter or hub on the Mac end, or use a cable that is USB-C on one end and micro-USB on the other.</span></li>
-    <li class="dont"><span><strong>Two-socket boards:</strong> do not use an oval-to-oval (USB-C to USB-C) cable in the board's oval socket. This board cannot be powered that way. Use the flat socket.</span></li>
+    <li class="do"><span><strong>Two-socket boards:</strong> the oval socket works as well, as long as the other end of the cable is a rectangular USB-A plug. A normal phone charging cable is usually this kind.</span></li>
+    <li class="dont"><span><strong>Two-socket boards:</strong> an oval-to-oval cable (USB-C on both ends) does not work in the board's oval socket. The board gets no power that way.</span></li>
   </ul>
 
   <div class="worked"><b>You'll know it worked when</b>the screen lights up. New boards show a colourful demo. Whatever it shows is fine.</div>
@@ -396,7 +322,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
     <summary>It didn't work</summary>
     <div><dl>
       <div><dt>The screen stays black</dt><dd>Push both ends of the cable in firmly. Try a different USB socket on the Mac. Then try a different cable.</dd></div>
-      <div><dt>The screen is on, but step 5 later says it cannot find the board</dt><dd>Many USB cables only carry power and no data. Use the cable from the box, or one you have used to copy files to a phone or camera.</dd></div>
+      <div><dt>The screen is on, but the check at the start of step 5 finds nothing</dt><dd>Many USB cables only carry power and no data. Use the cable from the box, or one you have used to copy files to a phone or camera. Plug it straight into the Mac, not into a dock or hub.</dd></div>
     </dl></div>
   </details>
   <label class="donebox"><input type="checkbox" id="done-2" data-step="2"> Step 2 done</label>
@@ -474,10 +400,14 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
 <!-- ================= STEP 5 ================= -->
 <section class="step" id="s5">
   <div class="step-head"><span class="num">5</span><h2>Copy the program onto the board</h2></div>
-  <p>People call this <strong>flashing</strong> or <strong>uploading</strong>. With the board plugged in, run:</p>
+  <p>People call this <strong>flashing</strong> or <strong>uploading</strong>. First check that the Mac can talk to the board, and is not just powering it. With the board plugged in, run:</p>
 
-  <div class="cmd"><code>pio run -e <span class="env">cyd</span> -t upload</code><button type="button">Copy</button></div>
-  <p class="cmdnote" id="envnote">You have not answered step 1 yet. This is the command for a one-socket board.</p>
+  <div class="cmd"><code>ls /dev/cu.*usbserial*</code><button type="button">Copy</button></div>
+  <p class="cmdnote">This should print one line, such as <code>/dev/cu.usbserial-1420</code>. That line is the board. If it says <code>no matches found</code>, stop here and open “It didn't work” below. The next command cannot work until this one does.</p>
+
+  <p>Then copy the program across:</p>
+
+  <div class="cmd"><code>pio run -e cyd -t upload</code><button type="button">Copy</button></div>
 
   <div class="panel">
     <svg viewBox="0 0 640 200" role="img" aria-label="Animation: the program travels down the USB cable from the laptop to the board">
@@ -505,10 +435,11 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
   <details class="fix">
     <summary>It didn't work</summary>
     <div><dl>
-      <div><dt>Stuck on <code>Connecting........</code> and then fails</dt><dd>Find the two tiny buttons on the back of the board, labelled BOOT and RST. Press and hold <strong>BOOT</strong>, run the command again, and let go when Terminal says <code>Writing</code>.</dd></div>
-      <div><dt>It cannot find a port or a device</dt><dd>The Mac cannot see the board. Go back to step 2 and try another cable.</dd></div>
+      <div><dt><code>no matches found</code>, or the upload starts with <code>Serial port /dev/cu.Bluetooth-Incoming-Port</code></dt><dd>The Mac cannot see the board at all, so the tool guessed a port that is not the board. Holding BOOT will not help. It is the cable or the socket. <strong>If the board's screen is dark</strong>, it has no power: an oval-to-oval cable in the board's oval socket cannot power it. Use the flat micro-USB socket, or a cable with a rectangular USB-A plug on the Mac end. <strong>If the screen is lit</strong>, it has power but no data: the cable is a charge-only one, so swap it. Either way, plug straight into the Mac instead of a dock or hub, then run the check command again.</dd></div>
+      <div><dt>The check command printed a line, but the upload is stuck on <code>Connecting........</code> and then fails</dt><dd>Find the two tiny buttons on the back of the board, labelled BOOT and RST. Press and hold <strong>BOOT</strong>, run the command again, and let go when Terminal says <code>Writing</code>.</dd></div>
       <div><dt><code>secrets.h: No such file</code></dt><dd>Step 4 was skipped. Do the two commands that create and open <code>secrets.h</code>.</dd></div>
-      <div><dt>The colours look wrong, like a photo negative</dt><dd>Change your answer in step 1 and run the new command. Running it again simply replaces the program.</dd></div>
+      <div><dt>The upload says SUCCESS but the screen is blank</dt><dd>Unplug the board, wait a second, and plug it back in. If it is still blank, the program is most likely running and only the display setting is wrong. Tell Claude: <em>“The upload worked but the screen is blank.”</em></dd></div>
+      <div><dt>The colours look wrong, like a photo negative</dt><dd>Some batches of this board need one extra display setting. Tell Claude: <em>“The colours are inverted.”</em></dd></div>
       <div><dt>The picture is upside down or mirrored</dt><dd>Tell Claude: <em>“The screen is upside down.”</em> It is a one-line change.</dd></div>
     </dl></div>
   </details>
@@ -582,6 +513,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
   <ul class="dodont">
     <li class="do"><span>Press firmly. This screen senses pressure, unlike a phone. A fingernail or the plastic pen works best.</span></li>
     <li class="do"><span>A button that says <code>--</code> is waiting for the battery to report in. Give it a few seconds.</span></li>
+    <li class="do"><span><strong>The screen switches itself off after one minute without a touch.</strong> Tap anywhere to wake it. That first tap only wakes the screen. It never presses a button, so you cannot switch something off by accident in the dark.</span></li>
   </ul>
 
   <div class="worked"><b>You'll know it worked when</b>the button on the screen changes colour and the matching light on the battery itself comes on or goes off.</div>
@@ -631,26 +563,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
 
 <hr>
 
-<!-- ================= BREADBOARD ================= -->
-<section class="step" id="breadboard">
-  <p class="eyebrow">Not needed for this project</p>
-  <h2>How a breadboard works, for next time</h2>
-  <p>A breadboard lets you connect parts by pushing their legs into holes. Under the holes are hidden metal strips. Two things pushed into the same strip are connected, as if you had joined them with a wire. Point at any hole to see which other holes share its strip.</p>
-
-  <div class="panel">
-    <div class="bbwrap"><svg id="bb" viewBox="0 0 578 410" role="img" aria-label="Breadboard. Each column of five holes is connected inside. The long rows at the top and bottom are power rails."></svg></div>
-    <div class="bbbtns" role="group" aria-label="Show an example">
-      <button type="button" data-bb="col" aria-pressed="true">A strip of five</button>
-      <button type="button" data-bb="rail" aria-pressed="false">A power rail</button>
-      <button type="button" data-bb="gap" aria-pressed="false">The middle gap</button>
-    </div>
-    <p id="bb-say" class="caption" aria-live="polite"></p>
-  </div>
-  <p class="muted">Your black board is pushed in across the middle gap, which is the correct way for a board like that to sit. It is not connected to anything and nothing is powering it, so it is harmless where it is. You can pull it straight out and put both away.</p>
-</section>
-
-<hr>
-
 <section class="step">
   <h2>Words you will run into</h2>
   <dl class="gloss">
@@ -693,20 +605,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
       } else { fallback(); }
     });
   });
-
-  /* ---- board variant ---- */
-  var names = { cyd: 'one-socket', cyd2usb: 'two-socket' };
-  function setVariant(v, save) {
-    if (!names[v]) return;
-    $$('.pick button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.variant === v)); });
-    $$('.env').forEach(function (e) { e.textContent = v; });
-    $('#envnote').textContent = 'This is the command for a ' + names[v] + ' board, as you answered in step 1.';
-    if (save) store.set('efm-variant', v);
-  }
-  $$('.pick button').forEach(function (b) {
-    b.addEventListener('click', function () { setVariant(b.dataset.variant, true); });
-  });
-  setVariant(store.get('efm-variant'), false);
 
   /* ---- progress ---- */
   var boxes = $$('.donebox input');
@@ -785,89 +683,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0 0; }
     g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapBtn(pair[1]); } });
   });
   render();
-
-  /* ---- breadboard ---- */
-  var NS = 'http://www.w3.org/2000/svg';
-  var bb = $('#bb'), COLS = 24, P = 22, X0 = 36;
-  var rowY = { A: 96, B: 118, C: 140, D: 162, E: 184, F: 232, G: 254, H: 276, I: 298, J: 320 };
-  var railY = { tp: 30, tm: 52, bp: 362, bm: 384 };
-  function el(name, attrs, parent) {
-    var e = document.createElementNS(NS, name);
-    for (var k in attrs) e.setAttribute(k, attrs[k]);
-    (parent || bb).appendChild(e); return e;
-  }
-  function cx(c) { return X0 + c * P; }
-  el('rect', { x: 2, y: 2, width: 574, height: 406, rx: 8, fill: '#ecefe6', stroke: '#c9cec2', 'stroke-width': 2 });
-  el('rect', { x: 2, y: 199, width: 574, height: 18, fill: '#d9ddd1' });
-  // printed rail lines, broken in the middle like the real board
-  [['tp', -12, '#d2493a'], ['tm', 12, '#3f6fd0'], ['bp', -12, '#d2493a'], ['bm', 12, '#3f6fd0']].forEach(function (r) {
-    var y = railY[r[0]] + r[1];
-    el('line', { x1: cx(0) - 8, y1: y, x2: cx(11) + 8, y2: y, stroke: r[2], 'stroke-width': 2 });
-    el('line', { x1: cx(12) - 8, y1: y, x2: cx(23) + 8, y2: y, stroke: r[2], 'stroke-width': 2 });
-  });
-  // hidden metal strips, drawn faintly
-  var strips = el('g', { stroke: '#c3c8ba', 'stroke-width': 5, 'stroke-linecap': 'round' });
-  for (var c = 0; c < COLS; c++) {
-    el('line', { x1: cx(c), y1: rowY.A, x2: cx(c), y2: rowY.E }, strips);
-    el('line', { x1: cx(c), y1: rowY.F, x2: cx(c), y2: rowY.J }, strips);
-  }
-  Object.keys(railY).forEach(function (k) {
-    el('line', { x1: cx(0), y1: railY[k], x2: cx(11), y2: railY[k] }, strips);
-    el('line', { x1: cx(12), y1: railY[k], x2: cx(23), y2: railY[k] }, strips);
-  });
-  var hl = el('rect', { rx: 10, fill: '#f0c02c', 'fill-opacity': 0.75, stroke: '#c2940f', 'stroke-width': 2 });
-  var holes = el('g', { fill: '#30363b' });
-  for (c = 0; c < COLS; c++) {
-    Object.keys(rowY).forEach(function (r) { el('circle', { cx: cx(c), cy: rowY[r], r: 4 }, holes); });
-    Object.keys(railY).forEach(function (k) { el('circle', { cx: cx(c), cy: railY[k], r: 4 }, holes); });
-  }
-  var labels = el('g', { fill: '#6b7479', 'font-size': 11, 'font-family': 'system-ui,sans-serif', 'text-anchor': 'middle' });
-  for (c = 0; c < COLS; c += 5) el('text', { x: cx(c), y: 80 }, labels).textContent = c;
-  Object.keys(rowY).forEach(function (r) { el('text', { x: 14, y: rowY[r] + 4 }, labels).textContent = r; });
-  [['tp', '+', '#d2493a'], ['tm', '−', '#3f6fd0'], ['bp', '+', '#d2493a'], ['bm', '−', '#3f6fd0']].forEach(function (r) {
-    el('text', { x: 14, y: railY[r[0]] + 5, fill: r[2], 'font-size': 15, 'font-weight': 700, 'text-anchor': 'middle', 'font-family': 'system-ui,sans-serif' }).textContent = r[1];
-  });
-  // the black board from the photo, sitting across the gap
-  el('rect', { x: cx(8) - 11, y: rowY.B - 11, width: 8 * P + 22, height: rowY.I - rowY.B + 22, rx: 6, fill: '#1d2023', 'fill-opacity': 0.9 });
-  el('text', { x: cx(12), y: 213, fill: '#e9eff3', 'font-size': 15, 'font-weight': 600, 'text-anchor': 'middle', 'font-family': 'system-ui,sans-serif' }).textContent = 'your black board';
-
-  var says = {
-    col: 'These five holes are one strip of metal. Parts pushed into the same strip are connected to each other. The strip stops at the middle gap.',
-    railp: 'A power rail, marked + in red. It is one long strip used to share power along the board. On your board the printed line has a break in the middle, so the left half and the right half are separate.',
-    railm: 'A ground rail, marked − in blue. Same idea as the + rail, used for the return side of the power. It is also split into a left half and a right half.',
-    gap: 'The gap splits the board into a top half and a bottom half that are not connected. Chips and small boards sit across it so the legs on one side are not joined to the legs on the other. That is why your black board is sitting where it is.'
-  };
-  function show(kind, a, b) {
-    if (kind === 'col') { set(cx(a) - 10, (b ? rowY.F : rowY.A) - 10, 20, 4 * P + 20); $('#bb-say').textContent = says.col; }
-    else if (kind === 'rail') { set(cx(b ? 12 : 0) - 10, railY[a] - 10, 11 * P + 20, 20); $('#bb-say').textContent = a.charAt(1) === 'p' ? says.railp : says.railm; }
-    else { set(8, 198, 562, 20); $('#bb-say').textContent = says.gap; }
-    function set(x, y, w, h) { hl.setAttribute('x', x); hl.setAttribute('y', y); hl.setAttribute('width', w); hl.setAttribute('height', h); }
-  }
-  function press(which) { $$('.bbbtns button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.bb === which)); }); }
-  function at(evt) {
-    var m = bb.getScreenCTM(); if (!m) return;
-    var pt = bb.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
-    var p = pt.matrixTransform(m.inverse());
-    var col = Math.round((p.x - X0) / P);
-    if (col < 0 || col >= COLS) return;
-    var hit = null;
-    Object.keys(railY).forEach(function (k) { if (Math.abs(p.y - railY[k]) < 11) hit = ['rail', k, col >= 12]; });
-    if (!hit && p.y > rowY.A - 11 && p.y < rowY.E + 11) hit = ['col', col, false];
-    if (!hit && p.y > rowY.F - 11 && p.y < rowY.J + 11) hit = ['col', col, true];
-    if (!hit && p.y > 196 && p.y < 220) hit = ['gap'];
-    if (hit) { show(hit[0], hit[1], hit[2]); press(hit[0]); }
-  }
-  bb.addEventListener('pointermove', at);
-  bb.addEventListener('pointerdown', at);
-  $$('.bbbtns button').forEach(function (b) {
-    b.addEventListener('click', function () {
-      press(b.dataset.bb);
-      if (b.dataset.bb === 'col') show('col', 4, false);
-      else if (b.dataset.bb === 'rail') show('rail', 'tp', false);
-      else show('gap');
-    });
-  });
-  show('col', 4, false);
 })();
 </script>
 </body>

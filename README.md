@@ -44,9 +44,6 @@ CYD or River 2 yet. First-boot checklist below.
    pio run -e cyd -t upload && pio device monitor
    ```
 
-   Board has **two** USB ports (USB-C + micro-USB)? It has a different display
-   panel — use `-e cyd2usb` instead. Wrong choice = inverted colours.
-
 ## Host-side protocol tests (no hardware needed)
 
 ```sh

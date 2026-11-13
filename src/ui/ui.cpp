@@ -60,6 +60,16 @@ static String drawn_status;
 static String drawn_detail;
 static uint32_t last_refresh_ms = 0;
 
+// screen sleep: backlight only — drawing carries on, so the picture is
+// already up to date the moment a tap wakes it
+static bool screen_on = true;
+static uint32_t last_touch_ms = 0;
+
+static void setScreen(bool on) {
+  screen_on = on;
+  digitalWrite(TFT_BL, on ? TFT_BACKLIGHT_ON : !TFT_BACKLIGHT_ON);
+}
+
 void begin() {
   tft.init();
   tft.setRotation(1);
@@ -267,7 +277,17 @@ void tick(ef::Connection &conn, uint32_t now_ms) {
 
   // touch first — snappier than the 1 Hz numeric refresh
   int px, py;
-  if (readTouch(now_ms, px, py) && usable) {
+  bool tapped = readTouch(now_ms, px, py);
+  if (tapped) {
+    last_touch_ms = now_ms;
+    if (!screen_on) {
+      setScreen(true);
+      tapped = false;  // a tap in the dark only wakes; it must not flip an output
+    }
+  } else if (screen_on && now_ms - last_touch_ms > SCREEN_SLEEP_MS) {
+    setScreen(false);
+  }
+  if (tapped && usable) {
     if (ac_btn.contains(px, py) && !ac_btn.pending && ds.ac_on >= 0) {
       bool target = ds.ac_on != 1;
       ac_btn.pending_target = target;
